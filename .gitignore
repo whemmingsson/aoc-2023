@@ -104,9 +104,8 @@ dist
 .tern-port
 
 # AOC data folders and files
-data
-example
-examples
+*/data.*
+*/data_example.*
 
 # VS code
 .DS_Store
