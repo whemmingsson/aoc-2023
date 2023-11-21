@@ -7,11 +7,10 @@ module.exports = class Parser {
     Reader._getRawData(Parser._getPath(dir, useExample))
       .split("\n")
       .forEach((line) => {
-        const shape = this._findMatchingShape(line, shapes);
-        if (shape) {
-          result.push(this._parseUsingShape(shape, line));
-        } else {
-          console.log(`Could not find shape that matches line ${line}`);
+        const regexParsed = this._parseUsingRegex(shapes, line);
+        if (regexParsed) result.push(regexParsed);
+        else {
+          console.log("Could not parse line", line);
         }
       });
     return result;
@@ -25,68 +24,26 @@ module.exports = class Parser {
     return Reader._getRawData(Parser._getPath(dir, useExample));
   }
 
-  static _parserFuncs() {
-    return {
-      STR: (value) => value,
-      INT: (value) => parseInt(value),
-      FLO: (value) => parseFloat(value),
+  static _parseUsingRegex(shapes, line) {
+    const parse = (value) => {
+      const maybeFloat = parseFloat(value);
+      if (maybeFloat) return maybeFloat;
+      const maybeInt = parseInt(value);
+      if (maybeInt) return maybeInt;
+      return value;
     };
-  }
 
-  static _findMatchingShape(line, shapes) {
     for (let i = 0; i < shapes.length; i++) {
-      const shape = shapes[i];
-      if (this._matchesShape(line.split(shape.delimiter), shape)) {
-        return shape;
+      const result = new RegExp(shapes[i].regex).exec(line);
+      if (result && result.length === shapes[i].props.length + 1) {
+        const values = result.splice(1); // Splice off the whole string result
+        const obj = {};
+        for (let j = 0; j < values.length; j++) {
+          obj[shapes[i].props[j]] = parse(values[j]);
+        }
+        return obj;
       }
     }
-    return null;
-  }
-
-  static _matchesShape(lineParts, shape) {
-    if (lineParts.length !== shape.props.length) {
-      return false;
-    }
-
-    const isInt = function (n) {
-      return parseInt(n) == n;
-    };
-
-    const isFloat = function (n) {
-      return parseFloat(n) == n;
-    };
-
-    for (let i = 0; i < lineParts.length; i++) {
-      const part = lineParts[i];
-      const shapePartType = shape.props[i].type;
-      if (shapePartType === "INT" && isInt(part)) continue;
-      if (shapePartType === "FLO" && isFloat(part)) continue;
-      if (shapePartType === "STR") continue;
-
-      return false;
-    }
-
-    return true;
-  }
-
-  static _parseUsingShape(shape, line) {
-    const lineParts = line.split(shape.delimiter);
-    const resultObj = {};
-
-    if (!this._matchesShape(lineParts, shape)) {
-      console.log(`Shape-line mismatch for line ${line} using shape`, shape, "Could not parse");
-      return;
-    }
-
-    lineParts.forEach((part, i) => {
-      const func = this._parserFuncs()[shape.props[i].type];
-
-      if (func) {
-        resultObj[shape.props[i].name] = func(part);
-      }
-    });
-
-    return resultObj;
   }
 
   static _parseUsingFunc(func, line) {

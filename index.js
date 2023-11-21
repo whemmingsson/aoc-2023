@@ -1,6 +1,1 @@
-function run() {
-  const day = 0;
-  require(`./${day}/index.js`).run();
-}
-
-run();
+require(`./${0}/index.js`).run();

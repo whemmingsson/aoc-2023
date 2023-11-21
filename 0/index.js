@@ -1,21 +1,19 @@
 const Parser = require("../common/parser.js");
+const r = require("../common/regexUtils.js");
 module.exports = class Day {
   static run() {
     const data = Parser.parse(__dirname, false, [
       {
-        delimiter: ",",
-        props: [
-          { name: "elfName", type: "STR" },
-          { name: "elfWeight", type: "INT" },
-          { name: "elfAge", type: "FLO" },
-        ],
+        regex: `${r.S},${r.I},${r.F}`,
+        props: ["elfName", "elfWeight", "elfAge"],
       },
       {
-        delimiter: "|",
-        props: [
-          { name: "flo", type: "FLO" },
-          { name: "int", type: "INT" },
-        ],
+        regex: `${r.F}\\|${r.I}`,
+        props: ["flo", "int"],
+      },
+      {
+        regex: `${r.S}\\|${r.F},${r.I},${r.I}:${r.S}`,
+        props: ["a", "b", "c", "d", "e"],
       },
     ]);
     console.log(data);
