@@ -4,16 +4,24 @@ module.exports = class Day {
   static run() {
     const data = Parser.parse(__dirname, false, [
       {
+        type: "regex",
         regex: `${regex.S},${regex.I},${regex.F}`,
         props: ["elfName", "elfWeight", "elfAge"],
       },
       {
+        type: "regex",
         regex: `${regex.F}\\|${regex.I}`,
         props: ["flo", "int"],
       },
       {
+        type: "regex",
         regex: `${regex.S}\\|${regex.F},${regex.I},${regex.I}:${regex.S}`,
         props: ["a", "b", "c", "d", "e"],
+      },
+      {
+        type: "array",
+        delimiter: " ",
+        valueType: "INT",
       },
     ]);
     console.log(data);
