@@ -11,19 +11,19 @@ module.exports = class Parser {
         const regexParsed = this._parse(shapes, line);
         if (regexParsed) result.push(regexParsed);
         else {
-          console.log("Could not parse line", line);
+          console.log("Could not parse line: ", line);
         }
       });
     return result;
   }
 
+  static readRaw(dir, useExample) {
+    return Reader._getRawData(Parser._getPath(dir, useExample));
+  }
+
   static _getPath(dir, useExample) {
     console.log(`./${getDay(dir)}/data${useExample ? "_example" : ""}.txt`);
     return `./${getDay(dir)}/data${useExample ? "_example" : ""}.txt`;
-  }
-
-  static readRaw(dir, useExample) {
-    return Reader._getRawData(Parser._getPath(dir, useExample));
   }
 
   static _parse(shapes, line) {
@@ -83,11 +83,11 @@ module.exports = class Parser {
     const values = line.split(shape.delimiter);
     let parserFunc = (v) => v;
 
-    if (shape.valueType === "INT") parserFunc = parseInt;
-    if (shape.valueType == "FLOAT") parserFunc = parseFloat;
+    if (shape.valueType === "int") parserFunc = parseInt;
+    if (shape.valueType == "float") parserFunc = parseFloat;
 
     const maybeResult = values.map((v) => parserFunc(v));
-    if ((shape.valueType === "INT" || shape.valueType == "FLOAT") && maybeResult.every((v) => !isNaN(v))) return maybeResult;
+    if ((shape.valueType === "int" || shape.valueType == "float") && maybeResult.every((v) => !isNaN(v))) return maybeResult;
 
     return null;
   }
