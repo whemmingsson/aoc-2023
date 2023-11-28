@@ -1,1 +1,1 @@
-require(`./${0}/index.js`).run();
+require(`./${process.argv[2]}/index.js`).run();
