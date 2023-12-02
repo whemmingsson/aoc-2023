@@ -8,8 +8,8 @@ module.exports = class Parser {
     Reader._getRawData(Parser._getPath(dir, useExample))
       .split("\n")
       .forEach((line) => {
-        const regexParsed = this._parse(shapes, line);
-        if (regexParsed) result.push(regexParsed);
+        const parsed = this._parse(shapes, line);
+        if (parsed) result.push(parsed);
         else {
           console.log("Could not parse line: ", line);
         }
@@ -22,23 +22,10 @@ module.exports = class Parser {
   }
 
   static _getPath(dir, useExample) {
-    console.log(`./${getDay(dir)}/data${useExample ? "_example" : ""}.txt`);
     return `./${getDay(dir)}/data${useExample ? "_example" : ""}.txt`;
   }
 
   static _parse(shapes, line) {
-    return this._parseUsingRegex(shapes, line);
-  }
-
-  static _parseUsingRegex(shapes, line) {
-    const parse = (value) => {
-      const maybeFloat = parseFloat(value);
-      if (maybeFloat) return maybeFloat;
-      const maybeInt = parseInt(value);
-      if (maybeInt) return maybeInt;
-      return value;
-    };
-
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
       if (shape.type === "regex") {
@@ -85,9 +72,11 @@ module.exports = class Parser {
 
     if (shape.valueType === "int") parserFunc = parseInt;
     if (shape.valueType == "float") parserFunc = parseFloat;
+    if (shape.valueType == "string") parserFunc = (v) => v;
 
     const maybeResult = values.map((v) => parserFunc(v));
     if ((shape.valueType === "int" || shape.valueType == "float") && maybeResult.every((v) => !isNaN(v))) return maybeResult;
+    if (shape.valueType === "string") return maybeResult;
 
     return null;
   }
