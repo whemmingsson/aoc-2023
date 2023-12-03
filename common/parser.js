@@ -8,6 +8,7 @@ module.exports = class Parser {
     Reader._getRawData(Parser._getPath(dir, useExample))
       .split("\n")
       .forEach((line) => {
+        console.log("Parsing ", line);
         const parsed = this._parse(shapes, line);
         if (parsed) result.push(parsed);
         else {
@@ -67,6 +68,7 @@ module.exports = class Parser {
   }
 
   static _parseArray(line, shape) {
+    console.log("parsing ", line, "with shape", shape);
     const values = line.split(shape.delimiter);
     let parserFunc = (v) => v;
 
