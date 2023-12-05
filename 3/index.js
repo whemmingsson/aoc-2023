@@ -33,7 +33,6 @@ module.exports = class Day {
         return number;
       } else {
         let i = pos;
-        // Move back
         while (isNumber(row[i])) {
           i--;
         }
