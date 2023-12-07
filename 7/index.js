@@ -1,7 +1,7 @@
 const Parser = require("../common/parser.js");
 module.exports = class Day {
   static run() {
-    const data = Parser.parse(__dirname, true, [
+    const data = Parser.parse(__dirname, false, [
       {
         type: "regex",
         regex: "([A-Z\\d]+) (\\d+)",
@@ -25,7 +25,7 @@ module.exports = class Day {
             continue;
           }
           let card = cards[i];
-          if (cards.filter((c) => c === card).length === x) return { has: true, card: card };
+          if (cards.filter((c) => c === card || c === "J").length === x) return { has: true, card: card };
         }
         return false;
       };
@@ -59,13 +59,16 @@ module.exports = class Day {
       d.type = determineHandType(d.hand);
     });
 
+    const cardValues = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
+    const cardValuesPart2 = ["A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2", "J"];
+    cardValues.reverse();
+    cardValuesPart2.reverse();
+
     // Order by strength
     data.sort((a, b) => {
       if (a.type === b.type) {
         const valueOf = (a) => {
-          if (parseInt(a) == a) return a;
-
-          return a.charCodeAt(0);
+          return cardValuesPart2.indexOf(a);
         };
         // Order by card comparison
         let i = 0;
@@ -76,12 +79,18 @@ module.exports = class Day {
         const va = valueOf(a.cards[i]);
         const vb = valueOf(b.cards[i]);
 
-        return va > vb ? 1 : -1;
+        return va < vb ? 1 : -1;
       }
 
       return handTypes.indexOf(a.type) > handTypes.indexOf(b.type) ? 1 : -1;
     });
 
+    data.reverse();
+    data.forEach((v, i) => (v.rank = i + 1));
+
     console.log(data);
+    const sum = data.map((v) => v.bid * v.rank).reduce((a, b) => a + b);
+
+    console.log(sum);
   }
 };
