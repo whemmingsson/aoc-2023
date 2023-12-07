@@ -45,9 +45,9 @@ module.exports = class Parser {
   static _parseWithRegex(line, shape) {
     const parse = (value) => {
       const maybeFloat = parseFloat(value);
-      if (maybeFloat) return maybeFloat;
+      if (maybeFloat == value) return maybeFloat;
       const maybeInt = parseInt(value);
-      if (maybeInt) return maybeInt;
+      if (maybeInt == value) return maybeInt;
       return value;
     };
 
