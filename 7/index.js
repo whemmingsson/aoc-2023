@@ -12,6 +12,7 @@ module.exports = class Day {
     // Workaround an annoying bug in the parser
     data.forEach((h) => {
       if (parseInt(h.hand) == h.hand) h.hand += "";
+      h.cards = h.hand.split("");
     });
 
     console.log(data);
@@ -61,8 +62,21 @@ module.exports = class Day {
     // Order by strength
     data.sort((a, b) => {
       if (a.type === b.type) {
+        const valueOf = (a) => {
+          if (parseInt(a) == a) return a;
+
+          return a.charCodeAt(0);
+        };
         // Order by card comparison
-        return 0;
+        let i = 0;
+        while (a.cards[i] === b.cards[i]) {
+          i++;
+        }
+
+        const va = valueOf(a.cards[i]);
+        const vb = valueOf(b.cards[i]);
+
+        return va > vb ? 1 : -1;
       }
 
       return handTypes.indexOf(a.type) > handTypes.indexOf(b.type) ? 1 : -1;
