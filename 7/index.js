@@ -19,36 +19,33 @@ module.exports = class Day {
     const handTypes = ["FIVE", "FOUR", "FULLHOUSE", "THREEOFKIND", "TWOPAIR", "ONEPAIR", "HIGHCARD"];
 
     const determineHandType = (hand) => {
-      const hasXOfKind = (x, notCard) => {
+      const diff = (a, b) => {
+        return a.filter((n) => !b.includes(n));
+      };
+      const hasXOfKind = (cards, x) => {
         for (let i = 0; i < cards.length; i++) {
-          if (notCard && cards[i] === notCard) {
-            continue;
-          }
           let card = cards[i];
-          if (cards.filter((c) => c === card || c === "J").length === x) return { has: true, card: card };
+          const matches = cards.filter((c) => c === card || c === "J");
+          if (matches.length === x) return { usedCards: matches };
         }
-        return false;
+        return null;
       };
 
       const cards = hand.split("");
 
-      if (hasXOfKind(5)) return handTypes[0];
-      if (hasXOfKind(4)) return handTypes[1];
+      if (hasXOfKind(cards, 5)) return handTypes[0];
+      if (hasXOfKind(cards, 4)) return handTypes[1];
 
-      // Full house
-      const three = hasXOfKind(3);
-      if (three.has) {
-        const two = hasXOfKind(2, three.card);
-        if (two.has) return handTypes[2];
+      const three = hasXOfKind(cards, 3);
+      if (three && hasXOfKind(diff(cards, three.usedCards), 2)) {
+        return handTypes[2];
       }
 
-      if (hasXOfKind(3).has) return handTypes[3];
+      if (hasXOfKind(cards, 3)) return handTypes[3];
 
-      // Two pairs / one pair
-      const p1 = hasXOfKind(2);
-      if (p1.has) {
-        const p2 = hasXOfKind(2, p1.card);
-        if (p2.has) return handTypes[4];
+      const pair = hasXOfKind(cards, 2);
+      if (pair) {
+        if (hasXOfKind(diff(cards, pair.usedCards), 2)) return handTypes[4];
         else return handTypes[5];
       }
 
@@ -87,10 +84,9 @@ module.exports = class Day {
 
     data.reverse();
     data.forEach((v, i) => (v.rank = i + 1));
-
+    data.forEach((v) => (v.score = v.bid * v.rank));
+    const sum = data.map((c) => c.score).reduce((a, b) => a + b);
     console.log(data);
-    const sum = data.map((v) => v.bid * v.rank).reduce((a, b) => a + b);
-
     console.log(sum);
   }
 };
