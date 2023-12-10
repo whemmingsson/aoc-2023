@@ -42,12 +42,7 @@ module.exports = class Day {
     };
 
     const getFirstInLevel = (level) => {
-      const onLevel = getAllNodesOnLevel(level);
-      const newNodes = onLevel.filter((n) => n.index === -1);
-      if (newNodes.length > 0) {
-        return newNodes[0];
-      }
-      return onLevel[0];
+      return getAllNodesOnLevel(level)[0];
     };
 
     const buildFirstLevel = (r) => {
@@ -97,9 +92,7 @@ module.exports = class Day {
         zero.index = -1;
         nodes.push(zero);
         for (let i = maxLevel() - 1; i >= 1; i--) {
-          let nn = new Node(getFirstInLevel(i).value - getFirstInLevel(i + 1).value, i);
-          nn.index = -1;
-          nodes.push(nn);
+          nodes = [new Node(getFirstInLevel(i).value - getFirstInLevel(i + 1).value, i), ...nodes];
         }
         sum += getFirstInLevel(1).value;
       }
