@@ -68,7 +68,6 @@ module.exports = class Parser {
   }
 
   static _parseArray(line, shape) {
-    console.log("parsing ", line, "with shape", shape);
     const values = line.split(shape.delimiter);
     let parserFunc = (v) => v;
 
