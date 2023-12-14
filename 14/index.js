@@ -143,24 +143,14 @@ module.exports = class Day {
 
     const result = runCycle(100000, true);
     const cycleLength = result.last - result.first;
-    console.log(cycleLength);
-
     const totalIterations = 1000000000;
-
-    const kvar = totalIterations - result.last;
     const numCycles = Math.floor((totalIterations - result.last) / cycleLength);
-
     const cycles = totalIterations - result.last - numCycles * cycleLength;
 
-    // nånting -> 3
-
     console.log("--------------------");
-    //console.log(cycles);
     runCycle(cycles, false);
 
     console.log("Run ", cycles);
-
-    //return;
 
     let load = 0;
     for (let y = 0; y < map.length; y++) {
