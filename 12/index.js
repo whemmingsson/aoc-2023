@@ -1,7 +1,7 @@
 const Parser = require("../common/parser.js");
 module.exports = class Day {
   static run() {
-    const data = Parser.readRaw(__dirname, true).split("\n");
+    const data = Parser.readRaw(__dirname, false).split("\n");
 
     console.log(data);
 
@@ -18,8 +18,9 @@ module.exports = class Day {
 
     const parseRow = (row) => {
       const p = row.split(" ");
-      const map = parseMap(p[0]);
-      const groups = parseGroups(p[1]);
+      // Part 2
+      const map = parseMap(p[0] + "." + p[0] + "." + p[0] + "." + p[0] + "." + p[0]);
+      const groups = parseGroups(p[1] + "," + p[1] + "," + p[1] + "," + p[1] + "," + p[1]);
       return { map, groups };
     };
 
@@ -68,6 +69,17 @@ module.exports = class Day {
       return copy.join("");
     };
 
+    const cache = {};
+    const getPermuations = (len) => {
+      if (cache[len]) {
+        console.log("Found", len, "in cache, #=", cache[len].length);
+        return cache[len];
+      }
+      const p = generatePermutations(options, len);
+      cache[len] = p;
+      return p;
+    };
+
     const countValidArrangements = (r) => {
       // Construct all arrangements
       const unknownIndecies = [];
@@ -76,22 +88,35 @@ module.exports = class Day {
       }
 
       let validCount = 0;
-      generatePermutations(options, unknownIndecies.length).forEach((per) => {
+      console.log(" Started generating permuations...");
+      let pers = getPermuations(unknownIndecies.length);
+      console.log(" Done!", pers.length);
+      console.log();
+
+      console.log(" Started testing permuations...");
+      pers.forEach((per) => {
         const map = generatePossibleMap(per, r.map, unknownIndecies);
         if (isValid(map, r.groups)) {
           validCount++;
         }
       });
+      console.log(" Done!", validCount);
 
       return validCount;
     };
 
     let sum = 0;
-    data.forEach((row) => {
+    let s = new Date();
+    data.forEach((row, i) => {
       const r = parseRow(row);
+      console.log("Starting row", i, r);
       sum += countValidArrangements(r);
     });
 
+    console.log("Run time", new Date() - s);
     console.log("Part 1", sum);
+
+    // Run time 9286 (before optimization);
+    // Run time 8411 (after optiomization);
   }
 };
