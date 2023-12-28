@@ -7,14 +7,16 @@ let i = 0;
 let diggerX;
 let diggerY;
 
-let holeWidth = 1;
-let holeHeight = 1;
+let holeWidth = 4;
+let holeHeight = 4;
 
-let speed = 5;
+let speed = 50;
 
-const getColor = (focalLength) => {
-  return new hsbColor(map(focalLength, 0, 9, 0, 360), 250, 320);
-};
+let floodFill = false;
+let floodInjectionPoint = { x: 0, y: 0 };
+let tilesToFlood = [];
+
+const k = (o) => `${o.x}_${o.y}`;
 
 const getDelta = (d) => {
   switch (d) {
@@ -31,34 +33,147 @@ const getDelta = (d) => {
   }
 };
 
+let running = false;
+
+const mapToDirection = (value) => {
+  switch (value) {
+    case 0:
+      return "R";
+    case 1:
+      return "D";
+    case 2:
+      return "L";
+    case 3:
+      return "U";
+    default:
+      throw Error(value + " is not a valid direction");
+  }
+}
+
 function setup() {
-  const canvas = createCanvas(1000, 1000);
-  // frameRate(2);
+  const canvas = createCanvas(1400, 1600);
   canvas.parent("sketch");
 
   const rows = data.split("\n");
 
   const rgx = /([UDLR])\s(\d+)\s\((#[a-f\d]+)\)/;
   for (let i = 0; i < rows.length; i++) {
-    const r = rows[i]; // D 5 (#0dc571)
+    const matches = rows[i].match(rgx);
+    let hex = matches[3];
+    const direction = parseInt([hex[hex.length - 1]]);
 
-    const matches = r.match(rgx);
-    instructions.push({ direction: matches[1], count: parseInt(matches[2]), color: matches[3] });
+    let hexNr = hex.substring(1, hex.length - 1);
+    console.log(hexNr);
+
+    instructions.push({ direction: mapToDirection(direction), count: parseInt(hexNr, 16), hex: hex });
   }
+  diggerX = 200;
+  diggerY = height - 400;
 
   console.log(instructions);
 
-  diggerX = 200;
-  diggerY = height - 300;
 }
 
 function mousePressed() {
-  //loop();
+  running = true;
+
+  if (i >= instructions.length) {
+    floodFill = true;
+    floodInjectionPoint = { x: Math.floor(mouseX / holeWidth) * holeWidth, y: Math.floor(mouseY / holeHeight) * holeHeight };
+    speed = 20;
+    loop();
+  }
+  else {
+    console.log("Not ready yet");
+  }
 }
 
 function draw() {
+  background(255);
+  if (!running) {
+    return;
+  }
+  if (!floodFill) {
+    calculateBoundry();
+  }
+  else {
+    runFloodFill();
+  }
+
+  trenchList.forEach((h) => {
+    fill(0);
+    rect(h.x, h.y, holeWidth, holeHeight);
+  });
+}
+
+function getNeighbors(x, y) {
+  const neighbors = [];
+
+  let up = { x: x, y: y - holeHeight };
+  let right = { x: x + holeWidth, y: y };
+  let down = { x: x, y: y + holeHeight };
+  let left = { x: x - holeWidth, y: y };
+
+  if (!trenchMap[k(up)]) {
+    neighbors.push(up);
+  }
+  if (!trenchMap[k(right)]) {
+    neighbors.push(right);
+  }
+  if (!trenchMap[k(down)]) {
+    neighbors.push(down);
+  }
+  if (!trenchMap[k(left)]) {
+    neighbors.push(left);
+  }
+
+  return neighbors;
+}
+
+function runFloodFill() {
+
+  if (floodInjectionPoint) {
+    const neighborsUnflooded = getNeighbors(floodInjectionPoint.x, floodInjectionPoint.y);
+    tilesToFlood = tilesToFlood.concat(neighborsUnflooded);
+    const key = k({ x: floodInjectionPoint.x, y: floodInjectionPoint.y });
+    trenchMap[key] = floodInjectionPoint;
+    trenchList.push(trenchMap[key]);
+    floodInjectionPoint = null;
+  }
+
   for (let n = 0; n < speed; n++) {
-    background(255);
+    if (tilesToFlood.length > 0) {
+      let neighborsMap = {}
+      let nextNeigbors = [];
+      tilesToFlood.forEach((t) => {
+        const neighbors = getNeighbors(t.x, t.y);
+        for (let i = 0; i < neighbors.length; i++) {
+          const key = k(neighbors[i]);
+          if (!neighborsMap[key]) {
+            neighborsMap[key] = neighbors[i];
+            nextNeigbors.push(neighbors[i]);
+          }
+        }
+        const key = k({ x: t.x, y: t.y });
+        if (!trenchMap[key]) {
+          trenchMap[key] = t;
+          trenchList.push(trenchMap[key]);
+        }
+      });
+
+      tilesToFlood = nextNeigbors;
+    }
+    else {
+      noLoop();
+      console.log("Done!");
+      console.log("Cubic meters digged out: ", trenchList.length);
+      break;
+    }
+  }
+}
+
+function calculateBoundry() {
+  for (let n = 0; n < speed; n++) {
     currentInstruction = instructions[i];
     const delta = getDelta(currentInstruction.direction);
     const color = currentInstruction.color;
@@ -66,7 +181,7 @@ function draw() {
     let tempY = diggerY;
     for (let n = 0; n < currentInstruction.count; n++) {
       const hole = { x: tempX, y: tempY, color: color };
-      const key = `${tempX}_${tempY}`;
+      const key = k(hole)
 
       if (!trenchMap[key]) {
         trenchList.push(hole);
@@ -82,15 +197,13 @@ function draw() {
 
     i++;
 
+    console.log("Processed instruction", i);
+
     if (i >= instructions.length) {
       noLoop();
       console.log("Done!");
       break;
     }
   }
-
-  trenchList.forEach((h) => {
-    fill(0);
-    rect(h.x, h.y, holeWidth, holeHeight);
-  });
 }
+

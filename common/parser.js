@@ -1,5 +1,6 @@
 const Reader = require("../common/reader.js");
 const getDay = require("../common/dayFolderParser.js");
+const os = require('node:os');
 
 module.exports = class Parser {
   static parse(dir, useExample, shapes) {
@@ -22,8 +23,10 @@ module.exports = class Parser {
     return Reader._getRawData(Parser._getPath(dir, useExample));
   }
 
+  static isWindows = () => os.platform() === "win32";
+
   static _getPath(dir, useExample) {
-    return `./${getDay(dir)}/data${useExample ? "_example" : ""}.txt`;
+    return `${this.isWindows() ? "" : "./"}${getDay(dir)}/data${useExample ? "_example" : ""}.txt`;
   }
 
   static _parse(shapes, line) {
